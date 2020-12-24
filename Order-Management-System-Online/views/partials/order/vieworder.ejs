@@ -1,0 +1,183 @@
+<div class="container">
+  <div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+  >
+    <h2>Pending Orders</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <form action="/orders/search">
+        <div class="input-group mb-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search"
+            aria-describedby="basic-addon2"
+            name="search"
+          />
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class="btn-group mb-4 px-2">
+        <% if(user.type.trim()==="admin"||user.type.trim()==="ordermgmtU"){ %>
+
+        <form method="GET" action="/api/orders/backup">
+          <button type="submit" class="btn btn-sm btn-outline-secondary">
+            Export
+          </button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-5">
+    <table class="table display table-striped" id="ordertable">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Customer</th>
+
+          <th scope="col">Product</th>
+          <th scope="col">Price</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Order Status</th>
+          <% if(user.type.trim()==="admin"||user.type.trim()==="ordermgmtU"){ %>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
+          <th scope="col">Approve</th>
+          <% } %>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% orders.forEach(order=>{if(order.status!="Completed") {%>
+
+        <tr>
+          <td><%= order.name %></td>
+          <td><%= order.customer %></td>
+          <td><%= order.productName %></td>
+          <td>$<%= order.price %></td>
+          <td><%= order.totalAmount %></td>
+          <td><%= order.status %></td>
+          <% if(user.type=="admin"||user.type=="ordermgmtU"){ %>
+          <td>
+            <%- include("../Editform",{ url:
+            `/orders/api/${order._id}/?_method=GET` }) %>
+          </td>
+          <td>
+            <%- include("../deleteForm",{ url:
+            `/orders/api/${order._id}/?_method=DELETE` }) %>
+          </td>
+          <td>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-toggle="modal"
+              data-target="#exampleModal"
+            >
+              Approve
+            </button>
+            <% } %>
+
+            <!-- Modal -->
+            <div
+              class="modal fade"
+              id="exampleModal"
+              tabindex="-1"
+              role="dialog"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">
+                      Send Email
+                    </h5>
+                    <button
+                      type="button"
+                      class="close"
+                      data-dismiss="modal"
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form method="POST" action="/orders/approve">
+                      <input
+                        type="text"
+                        placeholder="Name of the customer"
+                        style="width: 100%;"
+                        name="custname"
+                        class="form-control mb-3"
+                      />
+                      <input
+                        type="email"
+                        placeholder="Email address"
+                        style="width: 100%;"
+                        name="oemail"
+                        class="form-control mb-3"
+                      />
+                      <button type="submit" class="btn btn-primary">
+                        Send Email
+                      </button>
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-dismiss="modal"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <% }}) %>
+      </tbody>
+    </table>
+  </div>
+
+  <div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3"
+  >
+    <h2>Completed Orders</h2>
+  </div>
+  <div class="row mt-5">
+    <table class="table display table-striped" style="width: 100%;">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Customer</th>
+
+          <th scope="col">Product</th>
+          <th scope="col">Price</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Order Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% orders.forEach(order=>{ if(order.status=="Completed"){ %>
+
+        <tr>
+          <td><%= order.name %></td>
+          <td><%= order.customer %></td>
+          <td><%= order.productName %></td>
+          <td>$<%= order.price %></td>
+          <td><%= order.totalAmount %></td>
+          <td><%= order.status %></td>
+        </tr>
+        <% }}) %>
+      </tbody>
+    </table>
+  </div>
+</div>

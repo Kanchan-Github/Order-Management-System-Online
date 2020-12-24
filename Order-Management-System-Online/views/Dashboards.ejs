@@ -1,0 +1,187 @@
+<div class="container">
+  <div class="welcome mb-3">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="content">
+            <h2>Welcome to Dashboard</h2>
+            <p>
+              Manage your dashboard with one touch
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-list">
+    <div class="row">
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <div class="card dashboard-card blue">
+          <div class="title">Products</div>
+          <i class="fas fa-dolly-flatbed"></i>
+          <div class="value"><%=products.length %></div>
+          <div class="stat"><b>13</b>% increase</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <div class="card dashboard-card green">
+          <div class="title">Customer</div>
+          <i class="fas fa-users"></i>
+          <div class="value"><%=customer.length %></div>
+          <div class="stat"><b>4</b>% increase</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <div class="card dashboard-card orange">
+          <div class="title">SalesOrder</div>
+          <i class="fas fa-money-bill"></i>
+          <div class="value"><%= orders.length %></div>
+          <div class="stat"><b>13</b>% decrease</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <div class="card dashboard-card red">
+          <div class="title">Inventory</div>
+          <i class="fas fa-warehouse"></i>
+          <div class="value"><%=inventory.length %></div>
+          <div class="stat"><b>13</b>% decrease</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <canvas id="first-grid"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <canvas id="second-grid"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <h3>Notification panel</h3>
+      <div class="card">
+        <div class="card-body">
+          <%if(notifications) {%> <% notifications.forEach(notification=> {%>
+          <div class="alert alert-success" role="alert">
+            <%= notification.eventType %> <%= notification.eventName %> on <%
+            let date = new Date (notification.logged); %> <%=
+            date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate(); %>
+          </div>
+          <% })}; %>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+
+  <script>
+    function getRandomColor() {
+      var letters = "0123456789ABCDEF".split("");
+      var color = "#";
+      for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+    async function getInventory() {
+      const fetchinventory = await fetch(
+        "http://" + window.location.host + "/inventory/inventoryCategory"
+      );
+      const resp = await fetchinventory.json();
+      return resp;
+    }
+    let mychart = document.getElementById("first-grid").getContext("2d");
+
+    getInventory().then((data) => {
+      const Category = data.map((product) => {
+        return product._id;
+      });
+      const Quantity = data.map((product) => {
+        return product.Quantity;
+      });
+
+      let mybarchart = new Chart(mychart, {
+        type: "pie",
+        data: {
+          labels: Category,
+
+          datasets: [
+            {
+              label: "Quantity per category",
+
+              data: Quantity,
+              backgroundColor: [
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+              ],
+            },
+          ],
+        },
+        options: {},
+      });
+    });
+
+    let mysecondchart = document.getElementById("second-grid").getContext("2d");
+    async function getOrderStatus() {
+      const fetchstatus = await fetch(
+        "http://" + window.location.host + "/orders/api/orderLine"
+      );
+      const resp = await fetchstatus.json();
+      return resp;
+    }
+    getOrderStatus().then((data) => {
+      const status = data.map((s) => {
+        return s._id;
+      });
+      const count = data.map((c) => {
+        return c.count;
+      });
+      let mylinechart = new Chart(mysecondchart, {
+        type: "bar",
+        data: {
+          labels: status,
+          datasets: [
+            {
+              label: "Order Status",
+              barPercentage: 0.5,
+              barThickness: 6,
+              maxBarThickness: 8,
+              minBarLength: 2,
+              labels: "Price",
+              barWidth: 20,
+              data: count,
+              backgroundColor: [
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+                getRandomColor(),
+              ],
+            },
+          ],
+        },
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                },
+              },
+            ],
+          },
+        },
+      });
+    });
+  </script>
+</div>

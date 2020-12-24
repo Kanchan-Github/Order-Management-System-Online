@@ -1,0 +1,352 @@
+<style>
+  .statistics {
+    margin-top: 25px;
+    color: #ccc;
+  }
+  .statistics .box {
+    background-color: #313348;
+    padding: 15px;
+    overflow: hidden;
+  }
+  .statistics .box > i {
+    float: left;
+    color: #fff;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 22px;
+  }
+  .statistics .box .info {
+    float: left;
+    width: auto;
+    margin-left: 10px;
+  }
+  .statistics .box .info h3 {
+    margin: 5px 0 5px;
+    display: inline-block;
+  }
+  .statistics .box .info p {
+    color: #bbb;
+  }
+
+  /* End statistics */
+  /* Start charts */
+  .charts {
+    margin-top: 25px;
+    color: #bbb;
+  }
+  .charts .chart-container {
+    background-color: #313348;
+    padding: 15px;
+  }
+  .charts .chart-container h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+  }
+</style>
+<div class="container">
+  <section class="statistics mb-4">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="box">
+            <i class="fa fa-envelope fa-fw bg-primary"></i>
+            <div class="info">
+              <h3><%=orders.length %></h3>
+              <span>Orders</span>
+              <p>Received</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box">
+            <i
+              class="fa fa-file fa-fw danger"
+              style="background-color: red;"
+            ></i>
+            <div class="info">
+              <h3><%=inventory.length %></h3>
+              <span></span>
+              <p>In Stock</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box">
+            <i
+              class="fa fa-users fa-fw success"
+              style="background-color: green;"
+            ></i>
+            <div class="info">
+              <h3><%=customer.length %></h3>
+              <span>Customers</span>
+              <p>Customer</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div
+    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+  >
+    <h2>Inventory</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <div class="btn-group row mb-4 px-2"></div>
+      <div class="button-controls">
+        <button
+          type="submit"
+          data-toggle="modal"
+          data-target="#addInventory"
+          class="btn btn-sm btn-outline-secondary"
+        >
+          Add
+        </button>
+      </div>
+      <div class="button-controls mx-2">
+        <%if(user.type.trim()=="admin" ||user.type.trim()==="ordermgmtU"){ %>
+
+        <form method="GET" action="/api/inventory/backup">
+          <button type="submit" class="btn btn-sm btn-outline-secondary">
+            Export
+          </button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <!--Table-->
+  <div class="row w-100">
+    <table
+      id="inventory-table"
+      style="width: 100%;"
+      class="table display table-striped"
+    >
+      <!--Table head-->
+      <thead>
+        <tr>
+          <th>ProductID</th>
+          <th>ProductName</th>
+          <th>Category</th>
+          <th>Quantity Available</th>
+          <th>Manufacture Date</th>
+          <th>Price (per piece)</th>
+          <%if(user.type.trim()=="admin" ||user.type.trim()==="ordermgmtU"){ %>
+
+          <th>Actions</th>
+          <% } %>
+        </tr>
+      </thead>
+      <!--Table head-->
+
+      <!--Table body-->
+      <tbody>
+        <% inventory.forEach(products=>{ %>
+        <tr>
+          <td><%= products.ProductID %></td>
+          <td><%= products.ProductName %></td>
+          <td><%= products.Category %></td>
+
+          <td><%= products.ProductPrice %></td>
+          <td><%= products.ManufactureDate %></td>
+          <td><%= products.Quantity%></td>
+          <%if(user.type.trim()=="admin" ||user.type.trim()==="ordermgmtU"){ %>
+
+          <td>
+            <div class="d-flex">
+              <%- include("deleteForm",{
+              url:`/inventory/${products._id}?_method=DELETE` }) %>
+              <a
+                data-toggle="modal"
+                class="edit-inventory"
+                data-target="#editInventory"
+              >
+                <i class="fas fa-edit mt-3"></i>
+              </a>
+            </div>
+          </td>
+          <% } %>
+        </tr>
+        <% }) %>
+      </tbody>
+      <!--Table body-->
+    </table>
+    <!--Table-->
+  </div>
+</div>
+
+<!-- edit inventory Modal -->
+<div
+  class="modal fade"
+  id="editInventory"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editInventoryLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editInventoryLabel">Edit inventory</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <form method="POST" action="/inventory/editInventory">
+            <div class="form-group row">
+              <label for="ProductID">ProductID</label>
+              <input type="text" id="ep_id" class="mx-3" name="p_id" readonly />
+            </div>
+            <div class="form-group row">
+              <label for="ProductName">ProductName</label>
+              <input type="text" id="ep_name" class="mx-3" name="p_name" />
+            </div>
+            <div class="form-group row">
+              <label for="qty">Quantity Available</label>
+              <input type="number" id="ep_qty" class="mx-3" name="p_qty" />
+            </div>
+            <div class="form-group row">
+              <label for="qty">Category</label>
+              <select
+                id="ep_cat"
+                class="mx-2"
+                name="category"
+                id="inlineFormCustomSelect"
+              >
+                <option id="op_cat" selected>Choose...</option>
+                <% category.forEach(name=>{ %>
+                <option value="<%=name.categoryName %> "
+                  ><%=name.categoryName %></option
+                >
+
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group row">
+              <label for="m_date">Manufacture date</label>
+              <input type="date" id="e_date" class="mx-3" name="m_date" />
+            </div>
+            <div class="form-group row">
+              <label for="p_price">Price(per piece)</label>
+              <input type="number" id="ep_price" class="mx-3" name="p_price" />
+            </div>
+            <div class="form-group w-100">
+              <button
+                type="submit"
+                id="e_submit"
+                class="btn mx-5 btn-secondary"
+              >
+                Update
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal fade"
+  id="addInventory"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="addInventoryLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addInventoryLabel">Add to Inventory</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <form method="POST" action="/inventory/addInventory">
+            <div class="form-group row">
+              <label for="ProductID">ProductID</label>
+              <input type="text" class="mx-3" name="p_id" />
+            </div>
+            <div class="form-group row">
+              <label for="ProductName">ProductName</label>
+              <input type="text" class="mx-3" name="p_name" />
+            </div>
+            <div class="form-group row">
+              <label for="qty">Quantity Available</label>
+              <input type="number" class="mx-3" name="p_qty" />
+            </div>
+            <div class="form-group row">
+              <label for="qty">Category</label>
+              <select class="mx-2" name="category">
+                <option selected>Choose...</option>
+                <% category.forEach(name=>{ %>
+                <option value="<%=name.categoryName %> "
+                  ><%=name.categoryName %></option
+                >
+
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group row">
+              <label for="m_date">Manufacture date</label>
+              <input type="date" class="mx-3" name="m_date" />
+            </div>
+            <div class="form-group row">
+              <label for="p_price">Price(per piece)</label>
+              <input type="number" class="mx-3" name="p_price" />
+            </div>
+            <div class="form-group w-100">
+              <button type="submit" class="btn mx-5 btn-secondary">
+                Add to inventory
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  window.onload = () => {
+    let edit = document.querySelectorAll(".edit-inventory");
+    edit.forEach((x) =>
+      x.addEventListener("click", function (ev) {
+        var tr = ev.target.closest("tr");
+        document.getElementById("ep_id").value = tr.childNodes[1].innerText;
+        console.log(tr.childNodes);
+        document.getElementById("ep_name").value = tr.childNodes[3].innerText;
+        document.getElementById("op_cat").textContent =
+          tr.childNodes[5].textContent;
+        document.getElementById("ep_qty").value = tr.childNodes[7].textContent;
+        console.log(tr);
+        document.getElementById("e_date").value = tr.childNodes[9].textContent;
+        document.getElementById("ep_price").value =
+          tr.childNodes[11].textContent;
+      })
+    );
+  };
+</script>
